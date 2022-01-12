@@ -223,19 +223,19 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
                     
                     let nowStr = df.string(from: now)
                     
-                    /*
-                     // Save Full Feature Points
-                     let fullFileURL = dstURL.appendingPathComponent( "\(nowStr)_full.xyz" )
-                     self.recorder.saveFullPoints(to: fullFileURL.path)
+                    
+                    // Save Full Feature Points
+                    let fullFileURL = dstURL.appendingPathComponent( "\(nowStr)_full.xyz" )
+                    self.recorder.saveFullPoints(to: fullFileURL.path)
                      
                      // Save Mean Points of each Identifiers
-                     let avgFileURL = dstURL.appendingPathComponent( "\(nowStr)_avg.xyz" )
-                     self.recorder.saveAveragePoints(to: avgFileURL.path)
-                     */
+                    //  let avgFileURL = dstURL.appendingPathComponent( "\(nowStr)_avg.xyz" )
+                    //  self.recorder.saveAveragePoints(to: avgFileURL.path)
+                     
                     
                     // Save Mean Points of each Identifiers with Distance Standard Deviation Filter (default zscore value is 1.5)
-                    let distFileURL = dstURL.appendingPathComponent( "\(nowStr)_dist.xyz" )
-                    self.recorder.saveDistanceFilterAveragePoints(to: distFileURL.path)
+                    // let distFileURL = dstURL.appendingPathComponent( "\(nowStr)_dist.xyz" )
+                    // self.recorder.saveDistanceFilterAveragePoints(to: distFileURL.path)
                     
                     // Or you can set your own zscore
                     /*
