@@ -23,7 +23,8 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     
     var isRecording: Bool = false
     
-    var recorder: ARPointRecorder! = ARPointRecorder()
+    // var recorder: ARPointRecorder! = ARPointRecorder()
+    var recorder: [SCNVector3]
     var recorder_queue = DispatchQueue(label: "ARPointRecorder", attributes: [], autoreleaseFrequency: .workItem) // serial queue
     
     override func viewDidLoad() {
@@ -105,12 +106,35 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
     // Called whenever the ARFrame has been updated
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         if isRecording {
-            if let features = frame.rawFeaturePoints {
-                switch frame.camera.trackingState {
-                case .normal:
-                    recorder.appendPoints(from: features)
-                default:
-                    break
+            // if let features = frame.rawFeaturePoints {
+            //     switch frame.camera.trackingState {
+            //     case .normal:
+            //         recorder.appendPoints(from: features)
+            //     default:
+            //         break
+            //     }
+            // }
+            if(frame.sceneDepth != nil) && (frame.smoothedSceneDepth != nil) {
+                guard let depthData = frame.sceneDepth
+                let depthPixelBuffer = depthData.depthMap
+                let depthHeight = CVPixelBufferGetHeight(depthPixelBuffer)
+                let depthWidth  = CVPixelBufferGetWidth(depthPixelBuffer)
+                let resizeScale = CGFloat(depthWidth) / CGFloat(CVPixelBufferGetWidth(frame.capturedImage))
+                
+                let resizedColorImage = frame.capturedImage.toCGImage(scale: resizeScale);
+                guard let colorData = resizedColorImage.pixelData() else {
+                    fatalError()
+                }
+
+                let depthValues = depthPixelBuffer.depthValues()
+
+                for vv in 0..<depthHeight {
+                    for uu in 0..<depthWidth {
+                        let z = -depthValues[uu + vv * depthWidth]
+                        let x = Float32(uu) / Float32(depthWidth) * 2.0 - 1.0;
+                        let y = 1.0 - Float32(vv) / Float32(depthHeight) * 2.0;
+                        points.append(SCNVector3(x, y, z))
+                    }
                 }
             }
         }
@@ -206,7 +230,8 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
         isRecording = !isRecording
         
         if isRecording { // start recording
-            recorder.reset() // clear prev. data
+            // recorder.reset() // clear prev. data
+            recorder = []
             recordBtn.setTitle("Stop", for: .normal)
         }
         else { // stop recording
@@ -226,7 +251,15 @@ class ViewController: UIViewController, MTKViewDelegate, ARSessionDelegate {
                     
                     // Save Full Feature Points
                     let fullFileURL = dstURL.appendingPathComponent( "\(nowStr)_full.xyz" )
-                    self.recorder.saveFullPoints(to: fullFileURL.path)
+                    // self.recorder.saveFullPoints(to: fullFileURL.path)
+                    let encoder = PropertyListEncoder()
+
+                    do{
+                        let data = try encoder.encode(self.recorder)
+                        try data.write(to: fullFileURL!)
+                    } catch{
+                        print("Error encoding")
+                    }
                      
                      // Save Mean Points of each Identifiers
                     //  let avgFileURL = dstURL.appendingPathComponent( "\(nowStr)_avg.xyz" )
